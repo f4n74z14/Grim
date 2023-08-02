@@ -287,16 +287,22 @@ public class GrimPlayer implements GrimUser {
     public boolean addTransactionResponse(short id) {
         Pair<Short, Long> data = null;
         boolean hasID = false;
+        int skipped = 0;
         for (Pair<Short, Long> iterator : transactionsSent) {
             if (iterator.getFirst() == id) {
                 hasID = true;
                 break;
             }
+            skipped++;
         }
 
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
+
+            if (skipped > 1) {
+                checkManager.getPacketCheck(BadPacketsR.class).flagAndAlert("count=" + skipped);
+            }
 
             do {
                 data = transactionsSent.poll();
